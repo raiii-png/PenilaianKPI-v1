@@ -1354,6 +1354,57 @@ function updateSlider(key, kpiId, val) {
 }
 
 function nextStep() {
+  // Validasi dulu sebelum lanjut
+  const p = state.dinilai[state.step];
+  const key = p.nama;
+  const a = state.answers[key] || {};
+  const k = state.konteks[key] || {};
+  const namaKeg = state.namaKegiatan?.[key] || {};
+
+  // 1. Cek nama kegiatan wajib diisi sesuai jumlah
+  const checks = [
+    { konteksId: 'jml_rapat', label: 'Nama Rapat' },
+    { konteksId: 'jml_proker', label: 'Nama Proker' },
+    { konteksId: 'jml_lomba', label: 'Nama Lomba' },
+    { konteksId: 'jml_proker_tangani', label: 'Nama Proker Ditangani' },
+  ];
+  for (const c of checks) {
+    const jml = parseInt(k[c.konteksId]) || 0;
+    for (let i = 1; i <= jml; i++) {
+      const val = namaKeg[`${c.konteksId}_${i}`] || '';
+      if (!val.trim()) {
+        alert(`⚠️ ${c.label} ${i} untuk ${key} belum diisi!`);
+        return;
+      }
+    }
+  }
+
+  // 2. Cek semua KPI pilihan wajib diisi
+  for (const kpi of KPIS_PILIHAN) {
+    const jml = parseInt(k[kpi.konteks]) || 0;
+    if (jml === 0) continue;
+    if (jml === 1) {
+      if (a[kpi.id] === undefined || a[kpi.id] === '') {
+        alert(`⚠️ ${kpi.label} ${kpi.nama} untuk ${key} belum diisi!`);
+        return;
+      }
+    } else {
+      for (let i = 1; i <= jml; i++) {
+        if (a[`${kpi.id}_${i}`] === undefined || a[`${kpi.id}_${i}`] === '') {
+          alert(`⚠️ ${kpi.label} ${kpi.nama} kegiatan ke-${i} untuk ${key} belum diisi!`);
+          return;
+        }
+      }
+    }
+  }
+
+  // 3. Cek KPI 4 wajib diisi
+  if (!a['kpi4']) {
+    alert(`⚠️ KPI 4 (Kepuasan anggota) untuk ${key} belum diisi!`);
+    return;
+  }
+
+  // Semua valid, lanjut
   if (state.step < state.dinilai.length - 1) {
     state.step++;
     renderStep();
