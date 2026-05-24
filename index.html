@@ -1432,19 +1432,29 @@ async function submitForm() {
   const rows = state.dinilai.map(p => {
     const a = state.answers[p.nama]||{};
     const k = state.konteks[p.nama]||{};
-    // Kumpulkan semua nama kegiatan jadi 1 string
     const namaKeg = state.namaKegiatan?.[p.nama] || {};
-    const namaKegList = Object.values(namaKeg).filter(v=>v&&v.trim());
-    const nama_kegiatan = namaKegList.join(" | ") || "-";
+
+    // Fungsi ambil nama per slot (maks 6)
+    const getNama = (konteksId, max) => {
+      const hasil = {};
+      for (let i = 1; i <= max; i++) {
+        hasil[`nama_${konteksId}_${i}`] = namaKeg[`${konteksId}_${i}`] || "";
+      }
+      return hasil;
+    };
+
     return {
       nama: p.nama, jabatan_dinilai: p.jabatan,
       jml_rapat: k.jml_rapat||"0",
+      ...getNama("jml_rapat", 6),
       jml_proker: k.jml_proker||"0",
+      ...getNama("jml_proker", 6),
       jml_lomba: k.jml_lomba||"0",
+      ...getNama("jml_lomba", 6),
       jml_proker_tangani: k.jml_proker_tangani||"0",
+      ...getNama("jml_proker_tangani", 6),
       jml_rapat_dept: k.jml_rapat_dept||"0",
       jml_rapat_umum: k.jml_rapat_umum||"0",
-      nama_kegiatan,
       kpi11: akumulasi(a,k,"kpi11","jml_rapat"),
       kpi12: akumulasi(a,k,"kpi12","jml_proker"),
       kpi13: akumulasi(a,k,"kpi13","jml_lomba"),
