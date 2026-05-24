@@ -1354,7 +1354,6 @@ function updateSlider(key, kpiId, val) {
 }
 
 function nextStep() {
-  // Validasi dulu sebelum lanjut
   const p = state.dinilai[state.step];
   const key = p.nama;
   const a = state.answers[key] || {};
@@ -1362,47 +1361,55 @@ function nextStep() {
   const namaKeg = state.namaKegiatan?.[key] || {};
 
   // 1. Cek nama kegiatan wajib diisi sesuai jumlah
-  const checks = [
-    { konteksId: 'jml_rapat', label: 'Nama Rapat' },
-    { konteksId: 'jml_proker', label: 'Nama Proker' },
-    { konteksId: 'jml_lomba', label: 'Nama Lomba' },
-    { konteksId: 'jml_proker_tangani', label: 'Nama Proker Ditangani' },
+  const cekNama = [
+    { id: 'jml_rapat', label: 'Nama Rapat' },
+    { id: 'jml_proker', label: 'Nama Proker' },
+    { id: 'jml_lomba', label: 'Nama Lomba' },
+    { id: 'jml_proker_tangani', label: 'Nama Proker Ditangani' },
   ];
-  for (const c of checks) {
-    const jml = parseInt(k[c.konteksId]) || 0;
+  for (const c of cekNama) {
+    const jml = parseInt(k[c.id]) || 0;
     for (let i = 1; i <= jml; i++) {
-      const val = namaKeg[`${c.konteksId}_${i}`] || '';
-      if (!val.trim()) {
+      if (!(namaKeg[`${c.id}_${i}`] || '').trim()) {
         alert(`⚠️ ${c.label} ${i} untuk ${key} belum diisi!`);
         return;
       }
     }
   }
 
-  // 2. Cek semua KPI pilihan wajib diisi
+  // 2. Cek semua KPI pilihan (termasuk per kegiatan kalau jml > 1)
   for (const kpi of KPIS_PILIHAN) {
+    // KPI 4 tidak punya konteks, selalu wajib diisi 1x
+    if (!kpi.konteks) {
+      if (!a[kpi.id] && a[kpi.id] !== 0) {
+        alert(`⚠️ ${kpi.label} (${kpi.nama}) untuk ${key} belum diisi!`);
+        return;
+      }
+      continue;
+    }
+
     const jml = parseInt(k[kpi.konteks]) || 0;
+    // Kalau jml = 0, skip (tidak ada kegiatan)
     if (jml === 0) continue;
+
     if (jml === 1) {
-      if (a[kpi.id] === undefined || a[kpi.id] === '') {
-        alert(`⚠️ ${kpi.label} ${kpi.nama} untuk ${key} belum diisi!`);
+      // Cek answer langsung
+      if (!a[kpi.id] && a[kpi.id] !== 0) {
+        alert(`⚠️ ${kpi.label} (${kpi.nama}) untuk ${key} belum diisi!`);
         return;
       }
     } else {
+      // Cek per kegiatan
       for (let i = 1; i <= jml; i++) {
-        if (a[`${kpi.id}_${i}`] === undefined || a[`${kpi.id}_${i}`] === '') {
-          alert(`⚠️ ${kpi.label} ${kpi.nama} kegiatan ke-${i} untuk ${key} belum diisi!`);
+        if (!a[`${kpi.id}_${i}`] && a[`${kpi.id}_${i}`] !== 0) {
+          alert(`⚠️ ${kpi.label} (${kpi.nama}) kegiatan ke-${i} untuk ${key} belum diisi!`);
           return;
         }
       }
     }
   }
 
-  // 3. Cek KPI 4 wajib diisi
-  if (!a['kpi4']) {
-    alert(`⚠️ KPI 4 (Kepuasan anggota) untuk ${key} belum diisi!`);
-    return;
-  }
+  // 3. Slider KPI 3.1-3.3 — default 75 jadi selalu terisi, tidak perlu dicek
 
   // Semua valid, lanjut
   if (state.step < state.dinilai.length - 1) {
