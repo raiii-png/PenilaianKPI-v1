@@ -1381,7 +1381,8 @@ function nextStep() {
   for (const kpi of KPIS_PILIHAN) {
     // KPI 4 tidak punya konteks, selalu wajib diisi 1x
     if (!kpi.konteks) {
-      if (!a[kpi.id] && a[kpi.id] !== 0) {
+      const val = a[kpi.id];
+      if (val === undefined || val === null || val === '') {
         alert(`⚠️ ${kpi.label} (${kpi.nama}) untuk ${key} belum diisi!`);
         return;
       }
@@ -1389,19 +1390,18 @@ function nextStep() {
     }
 
     const jml = parseInt(k[kpi.konteks]) || 0;
-    // Kalau jml = 0, skip (tidak ada kegiatan)
     if (jml === 0) continue;
 
     if (jml === 1) {
-      // Cek answer langsung
-      if (!a[kpi.id] && a[kpi.id] !== 0) {
+      const val = a[kpi.id];
+      if (val === undefined || val === null || val === '') {
         alert(`⚠️ ${kpi.label} (${kpi.nama}) untuk ${key} belum diisi!`);
         return;
       }
     } else {
-      // Cek per kegiatan
       for (let i = 1; i <= jml; i++) {
-        if (!a[`${kpi.id}_${i}`] && a[`${kpi.id}_${i}`] !== 0) {
+        const val = a[`${kpi.id}_${i}`];
+        if (val === undefined || val === null || val === '') {
           alert(`⚠️ ${kpi.label} (${kpi.nama}) kegiatan ke-${i} untuk ${key} belum diisi!`);
           return;
         }
